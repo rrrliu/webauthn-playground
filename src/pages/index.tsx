@@ -3,9 +3,6 @@ import {
   startRegistration,
 } from "@simplewebauthn/browser";
 import base64 from "@hexagon/base64";
-// import { AsnParser } from "@peculiar/asn1-schema";
-// import { ECDSASigValue } from "@peculiar/asn1-ecc";
-import * as asn1js from "asn1js";
 import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
@@ -16,9 +13,9 @@ import {
 import * as cborx from "cbor-x";
 import { useState } from "react";
 import styled from "styled-components";
-import { derToJose } from "ecdsa-sig-formatter";
 import { AsnParser } from "@peculiar/asn1-schema";
 import { ECDSASigValue } from "@peculiar/asn1-ecc";
+import axios from "axios";
 
 const Container = styled.div`
   display: flex;
@@ -150,6 +147,8 @@ interface Authenticator {
 export default function Home() {
   const [username, setUsername] = useState("");
   const [response, setResponse] = useState<VerifiedRegistrationResponse>();
+  const [proof, setProof] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function loginCredential() {
     const authenticationOptions = await generateAuthenticationOptions({
@@ -289,13 +288,17 @@ export default function Home() {
         counter: authenticator.counter,
       },
     });
-    const base64UrlPublicKey =
-      "pQECAyYgASFYIMeaYlCK5TBnoZoiE2m7+bTIQbCpZViN8F+4WVulV40ZIlggvXYTleYVkDhU0nxwFdQibQrUyzrU1pgvW6pnRxmWKrc=";
-    console.log({
-      base64UrlPublicKey,
-      bytes: new Uint8Array(base64.toArrayBuffer(base64UrlPublicKey, true)),
-    });
     console.log({ response });
+    const { data } = await axios.post("http://localhost:8000/prove", {
+      r: Array.from(new Uint8Array(rBytes)),
+      s: Array.from(new Uint8Array(sBytes)),
+      pubkey_x: Array.from(new Uint8Array(x)),
+      pubkey_y: Array.from(new Uint8Array(y)),
+      msghash: Array.from(new Uint8Array(hashedMessage)),
+      proving_key_path: "./proving_key.pk",
+    });
+    console.log({ data });
+    setProof(data);
   }
 
   async function createNewCredential() {
@@ -371,6 +374,9 @@ export default function Home() {
       <button disabled={!username} onClick={createNewCredential}>
         Register
       </button>
+      <button onClick={loginCredential}>Authenticate</button>
+      {loading && <div>Waiting for the proof to generate...</div>}
+      {proof && <div>The proof is: {proof}</div>}
       {response?.registrationInfo && (
         <>
           <Subheading>Registered new credential</Subheading>
@@ -393,7 +399,6 @@ export default function Home() {
           </div>
         </>
       )}
-      <button onClick={loginCredential}>Authenticate</button>
     </Container>
   );
 }
