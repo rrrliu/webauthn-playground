@@ -247,11 +247,13 @@
     asn1js "^3.0.5"
     tslib "^2.4.0"
 
-"@peculiar/asn1-ecc@^2.3.4":
-  version "2.3.4"
+"@peculiar/asn1-ecc@^2.3.4", "@peculiar/asn1-ecc@^2.3.6":
+  version "2.3.6"
+  resolved "https://registry.npmjs.org/@peculiar/asn1-ecc/-/asn1-ecc-2.3.6.tgz"
+  integrity sha512-Hu1xzMJQWv8/GvzOiinaE6XiD1/kEhq2C/V89UEoWeZ2fLUcGNIvMxOr/pMyL0OmpRWj/mhCTXOZp4PP+a0aTg==
   dependencies:
-    "@peculiar/asn1-schema" "^2.3.3"
-    "@peculiar/asn1-x509" "^2.3.4"
+    "@peculiar/asn1-schema" "^2.3.6"
+    "@peculiar/asn1-x509" "^2.3.6"
     asn1js "^3.0.5"
     tslib "^2.4.0"
 
@@ -263,17 +265,21 @@
     asn1js "^3.0.5"
     tslib "^2.4.0"
 
-"@peculiar/asn1-schema@^2.1.6", "@peculiar/asn1-schema@^2.3.0", "@peculiar/asn1-schema@^2.3.3":
-  version "2.3.3"
+"@peculiar/asn1-schema@^2.1.6", "@peculiar/asn1-schema@^2.3.0", "@peculiar/asn1-schema@^2.3.3", "@peculiar/asn1-schema@^2.3.6":
+  version "2.3.6"
+  resolved "https://registry.npmjs.org/@peculiar/asn1-schema/-/asn1-schema-2.3.6.tgz"
+  integrity sha512-izNRxPoaeJeg/AyH8hER6s+H7p4itk+03QCa4sbxI3lNdseQYCuxzgsuNK8bTXChtLTjpJz6NmXKA73qLa3rCA==
   dependencies:
     asn1js "^3.0.5"
     pvtsutils "^1.3.2"
     tslib "^2.4.0"
 
-"@peculiar/asn1-x509@^2.3.4":
-  version "2.3.4"
+"@peculiar/asn1-x509@^2.3.4", "@peculiar/asn1-x509@^2.3.6":
+  version "2.3.6"
+  resolved "https://registry.npmjs.org/@peculiar/asn1-x509/-/asn1-x509-2.3.6.tgz"
+  integrity sha512-dRwX31R1lcbIdzbztiMvLNTDoGptxdV7HocNx87LfKU0fEWh7fTWJjx4oV+glETSy6heF/hJHB2J4RGB3vVSYg==
   dependencies:
-    "@peculiar/asn1-schema" "^2.3.3"
+    "@peculiar/asn1-schema" "^2.3.6"
     asn1js "^3.0.5"
     ipaddr.js "^2.0.1"
     pvtsutils "^1.3.2"

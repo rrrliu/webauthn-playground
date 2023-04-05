@@ -17,6 +17,8 @@ import * as cborx from "cbor-x";
 import { useState } from "react";
 import styled from "styled-components";
 import { derToJose } from "ecdsa-sig-formatter";
+import { AsnParser } from "@peculiar/asn1-schema";
+import { ECDSASigValue } from "@peculiar/asn1-ecc";
 
 const Container = styled.div`
   display: flex;
@@ -235,9 +237,23 @@ export default function Home() {
     // }
 
     // const updatedSignature = concatUint8Arrays(rBytes, sBytes);
-    const jose = derToJose(authenticationResponse.response.signature, "ES256");
+    // const jose = derToJose(authenticationResponse.response.signature, "ES256");
 
-    const updatedSignature = base64.toArrayBuffer(jose, false);
+    // const updatedSignature = base64.toArrayBuffer(jose, false);
+    const parsedSignature = AsnParser.parse(signature, ECDSASigValue);
+    let rBytes = new Uint8Array(parsedSignature.r);
+    let sBytes = new Uint8Array(parsedSignature.s);
+
+    if (shouldRemoveLeadingZero(rBytes)) {
+      rBytes = rBytes.slice(1);
+    }
+
+    if (shouldRemoveLeadingZero(sBytes)) {
+      sBytes = sBytes.slice(1);
+    }
+
+    // const finalSignature = isoUint8Array.concat([rBytes, sBytes]);
+    const updatedSignature = concatUint8Arrays(rBytes, sBytes);
 
     const key = await window.crypto.subtle.importKey(
       "jwk",
@@ -256,7 +272,7 @@ export default function Home() {
       updatedSignature,
       preimage
     );
-    console.log({ result, jose, updatedSignature });
+    console.log({ result, updatedSignature });
 
     const response = await verifyAuthenticationResponse({
       response: authenticationResponse,
