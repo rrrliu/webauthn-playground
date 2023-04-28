@@ -289,12 +289,13 @@ export default function Home() {
       },
     });
     console.log({ response });
+    // Inputs need to be little-endian
     const { data } = await axios.post("http://localhost:8000/prove", {
-      r: Array.from(new Uint8Array(rBytes)),
-      s: Array.from(new Uint8Array(sBytes)),
-      pubkey_x: Array.from(new Uint8Array(x)),
-      pubkey_y: Array.from(new Uint8Array(y)),
-      msghash: Array.from(new Uint8Array(hashedMessage)),
+      r: Array.from(new Uint8Array(rBytes)).reverse(),
+      s: Array.from(new Uint8Array(sBytes)).reverse(),
+      pubkey_x: Array.from(new Uint8Array(x)).reverse(),
+      pubkey_y: Array.from(new Uint8Array(y)).reverse(),
+      msghash: Array.from(new Uint8Array(hashedMessage)).reverse(),
       proving_key_path: "./proving_key.pk",
     });
     console.log({ data });
