@@ -19,6 +19,11 @@ import axios from "axios";
 
 const Container = styled.div`
   display: flex;
+  justify-content: center;
+`;
+
+const Content = styled.div`
+  display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 24px;
@@ -223,22 +228,6 @@ export default function Home() {
       ext: false,
     };
 
-    // const parsedSignature = AsnParser.parse(signature);
-    // let rBytes = new Uint8Array(parsedSignature.r);
-    // let sBytes = new Uint8Array(parsedSignature.s);
-
-    // if (shouldRemoveLeadingZero(rBytes)) {
-    //   rBytes = rBytes.slice(1);
-    // }
-
-    // if (shouldRemoveLeadingZero(sBytes)) {
-    //   sBytes = sBytes.slice(1);
-    // }
-
-    // const updatedSignature = concatUint8Arrays(rBytes, sBytes);
-    // const jose = derToJose(authenticationResponse.response.signature, "ES256");
-
-    // const updatedSignature = base64.toArrayBuffer(jose, false);
     const parsedSignature = AsnParser.parse(signature, ECDSASigValue);
     let rBytes = new Uint8Array(parsedSignature.r);
     let sBytes = new Uint8Array(parsedSignature.s);
@@ -366,40 +355,42 @@ export default function Home() {
 
   return (
     <Container>
-      <Heading>WebAuthn testing</Heading>
-      <InputField
-        placeholder="Username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-      />
-      <button disabled={!username} onClick={createNewCredential}>
-        Register
-      </button>
-      <button onClick={loginCredential}>Authenticate</button>
-      {loading && <div>Waiting for the proof to generate...</div>}
-      {proof && <div>The proof is: {proof}</div>}
-      {response?.registrationInfo && (
-        <>
-          <Subheading>Registered new credential</Subheading>
-          <div>aaguid: {response.registrationInfo.aaguid}</div>
-          <div>
-            credential device type:{" "}
-            {response.registrationInfo.credentialDeviceType}
-          </div>
-          <div>
-            credential id:{" "}
-            {Buffer.from(response.registrationInfo.credentialID).toString(
-              "base64"
-            )}
-          </div>
-          <div>
-            credential public key:{" "}
-            {Buffer.from(
-              response.registrationInfo.credentialPublicKey
-            ).toString("base64")}
-          </div>
-        </>
-      )}
+      <Content>
+        <Heading>P-256 Wallets with SNARKs</Heading>
+        <InputField
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <button disabled={!username} onClick={createNewCredential}>
+          Register smart contract wallet
+        </button>
+        <button onClick={loginCredential}>Sign transaction</button>
+        {loading && <div>Waiting for the proof to generate...</div>}
+        {proof && <div>The proof is: {proof}</div>}
+        {response?.registrationInfo && (
+          <>
+            <Subheading>Registered new credential</Subheading>
+            <div>aaguid: {response.registrationInfo.aaguid}</div>
+            <div>
+              credential device type:{" "}
+              {response.registrationInfo.credentialDeviceType}
+            </div>
+            <div>
+              credential id:{" "}
+              {Buffer.from(response.registrationInfo.credentialID).toString(
+                "base64"
+              )}
+            </div>
+            <div>
+              credential public key:{" "}
+              {Buffer.from(
+                response.registrationInfo.credentialPublicKey
+              ).toString("base64")}
+            </div>
+          </>
+        )}
+      </Content>
     </Container>
   );
 }
