@@ -1,4 +1,5 @@
 import {
+  browserSupportsWebAuthnAutofill,
   startAuthentication,
   startRegistration,
 } from "@simplewebauthn/browser";
@@ -16,28 +17,7 @@ import styled from "styled-components";
 import { AsnParser } from "@peculiar/asn1-schema";
 import { ECDSASigValue } from "@peculiar/asn1-ecc";
 import axios from "axios";
-
-const Container = styled.div`
-  display: flex;
-  justify-content: center;
-`;
-
-const Content = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 24px;
-`;
-
-const Heading = styled.div`
-  font-size: 36;
-`;
-
-const Subheading = styled.div`
-  font-size: 36;
-`;
-
-const InputField = styled.input``;
+import Image from "next/image";
 
 const encoder = new cborx.Encoder({
   mapsAsObjects: false,
@@ -155,6 +135,8 @@ export default function Home() {
   const [proof, setProof] = useState("");
   const [loading, setLoading] = useState(false);
 
+  console.log({ hi: browserSupportsWebAuthnAutofill() });
+
   async function loginCredential() {
     const authenticationOptions = await generateAuthenticationOptions({
       rpID: window.location.hostname,
@@ -162,6 +144,7 @@ export default function Home() {
     });
     const authenticationResponse = await startAuthentication(
       authenticationOptions
+      // await browserSupportsWebAuthnAutofill()
     );
     const clientDataJSON = base64.toArrayBuffer(
       authenticationResponse.response.clientDataJSON,
@@ -279,7 +262,8 @@ export default function Home() {
     });
     console.log({ response });
     // Inputs need to be little-endian
-    const { data } = await axios.post("http://localhost:8000/prove", {
+    setLoading(true);
+    const { data } = await axios.post("http://localhost:8000/prove_evm", {
       r: Array.from(new Uint8Array(rBytes)).reverse(),
       s: Array.from(new Uint8Array(sBytes)).reverse(),
       pubkey_x: Array.from(new Uint8Array(x)).reverse(),
@@ -288,6 +272,7 @@ export default function Home() {
       proving_key_path: "./proving_key.pk",
     });
     console.log({ data });
+    setLoading(false);
     setProof(data);
   }
 
@@ -354,23 +339,88 @@ export default function Home() {
   }
 
   return (
-    <Container>
-      <Content>
-        <Heading>P-256 Wallets with SNARKs</Heading>
-        <InputField
+    <div className="w-screen h-screen flex justify-center items-center">
+      <div className="flex flex-col items-center border-gray-200 border rounded-md p-8 gap-6">
+        <Image width={80} height={80} src="/touchID.png" alt="Touch ID" />
+        <h1 className="text-3xl font-bold text-orange-700">P-256 Wallet</h1>
+        <p>Sign Ethereum transactions with only your fingerprint.</p>
+        <input
+          autoComplete="webauthn"
+          className="rounded-md p-2"
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
-        <button disabled={!username} onClick={createNewCredential}>
-          Register smart contract wallet
+        <button
+          className={`text-black font-bold py-2 px-4 rounded-md bg-white ${
+            username ? "cursor-pointer hover:opacity-80" : ""
+          }`}
+          disabled={!username}
+          onClick={createNewCredential}
+        >
+          Register new P-256 wallet
         </button>
-        <button onClick={loginCredential}>Sign transaction</button>
-        {loading && <div>Waiting for the proof to generate...</div>}
-        {proof && <div>The proof is: {proof}</div>}
+        {!loading && (
+          <button
+            disabled={loading}
+            className={`${
+              username ? "cursor-pointer hover:opacity-80" : ""
+            } text-white font-bold py-2 px-4 rounded bg-transparent border`}
+            onClick={loginCredential}
+          >
+            Sign transaction
+          </button>
+        )}
+        {loading && (
+          <div role="status">
+            <svg
+              aria-hidden="true"
+              className="inline w-8 h-8 mr-2 text-gray-200 animate-spin dark:text-gray-600 fill-gray-600 dark:fill-gray-300"
+              viewBox="0 0 100 101"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                fill="currentColor"
+              />
+              <path
+                d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                fill="currentFill"
+              />
+            </svg>
+            <span className="sr-only">Loading...</span>
+          </div>
+        )}
+        {proof && (
+          <div className="flex align-items gap-3">
+            <div>
+              The proof is: {proof.slice(0, 5)}...
+              {proof.slice(proof.length - 5)}
+            </div>
+
+            <svg
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+              className="cursor-pointer hover:opacity-80 w-4"
+              onClick={() => navigator.clipboard.writeText(proof)}
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"
+              ></path>
+            </svg>
+          </div>
+        )}
+
         {response?.registrationInfo && (
           <>
-            <Subheading>Registered new credential</Subheading>
+            <div>Registered new credential</div>
             <div>aaguid: {response.registrationInfo.aaguid}</div>
             <div>
               credential device type:{" "}
@@ -390,7 +440,7 @@ export default function Home() {
             </div>
           </>
         )}
-      </Content>
-    </Container>
+      </div>
+    </div>
   );
 }
