@@ -1,5 +1,5 @@
+import { Client, UserOperationBuilder } from "userop";
 import {
-  browserSupportsWebAuthnAutofill,
   startAuthentication,
   startRegistration,
 } from "@simplewebauthn/browser";
@@ -123,19 +123,17 @@ function shouldRemoveLeadingZero(bytes: Uint8Array): boolean {
   return bytes[0] === 0x0 && (bytes[1] & (1 << 7)) !== 0;
 }
 
-interface Authenticator {
-  credentialID: Uint8Array;
-  credentialPublicKey: Uint8Array;
-  counter: number;
-}
-
 export default function Home() {
+  const API_URL =
+    process.env.NODE_ENV === "production"
+      ? "https://proving-server.onrender.com/"
+      : "http://localhost:8000";
   const [username, setUsername] = useState("");
   const [response, setResponse] = useState<VerifiedRegistrationResponse>();
   const [proof, setProof] = useState("");
   const [loading, setLoading] = useState(false);
-
-  console.log({ hi: browserSupportsWebAuthnAutofill() });
+  const [verified, setVerified] = useState<boolean>();
+  const [verifyLoading, setVerifyLoading] = useState(false);
 
   async function loginCredential() {
     const authenticationOptions = await generateAuthenticationOptions({
@@ -248,11 +246,7 @@ export default function Home() {
     const response = await verifyAuthenticationResponse({
       response: authenticationResponse,
       expectedChallenge: "YXNkZg",
-      expectedOrigin: [
-        "http://localhost:3000",
-        "https://webauthn-playground-rrrliu.vercel.app",
-        "https://webauthn-playground.vercel.app",
-      ],
+      expectedOrigin: window.location.origin,
       expectedRPID: window.location.hostname,
       authenticator: {
         credentialID: Uint8Array.from(authenticator.credentialID),
@@ -262,8 +256,9 @@ export default function Home() {
     });
     console.log({ response });
     // Inputs need to be little-endian
+    setVerified(undefined);
     setLoading(true);
-    const { data } = await axios.post("http://localhost:8000/prove_evm", {
+    const { data } = await axios.post(`${API_URL}/prove_evm`, {
       r: Array.from(new Uint8Array(rBytes)).reverse(),
       s: Array.from(new Uint8Array(sBytes)).reverse(),
       pubkey_x: Array.from(new Uint8Array(x)).reverse(),
@@ -274,6 +269,24 @@ export default function Home() {
     console.log({ data });
     setLoading(false);
     setProof(data);
+  }
+
+  // FIXME
+  async function sendToBundler() {
+    console.log(1);
+    const rpcUrl = "http://127.0.0.1:8545";
+    console.log(2);
+    const entryPoint = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+    console.log(3);
+    const client = await Client.init(rpcUrl);
+    console.log(4);
+    const sender = "0xe0bff5a98bb11e3d7951bc10cf7c80e9a3d8b435";
+    console.log(5);
+    const builder = new UserOperationBuilder().useDefaults({ sender });
+    console.log(6);
+    const response = await client.sendUserOperation(builder);
+    console.log(7);
+    const userOperationEvent = await response.wait();
   }
 
   async function createNewCredential() {
@@ -291,11 +304,7 @@ export default function Home() {
     );
     const verificationResponse = await verifyRegistrationResponse({
       response: startRegistrationResponse,
-      expectedOrigin: [
-        "http://localhost:3000",
-        "https://webauthn-playground-rrrliu.vercel.app",
-        "https://webauthn-playground.vercel.app",
-      ],
+      expectedOrigin: window.location.origin,
       expectedChallenge: generatedRegistrationOptions.challenge,
       supportedAlgorithmIDs: [-7],
     });
@@ -323,19 +332,6 @@ export default function Home() {
         counter,
       })
     );
-
-    console.log({
-      publicKey,
-      generatedRegistrationOptions,
-      startRegistrationResponse,
-      verificationResponse,
-      kty,
-      alg,
-      crv,
-      x,
-      y,
-      n,
-    });
   }
 
   return (
@@ -363,9 +359,7 @@ export default function Home() {
         {!loading && (
           <button
             disabled={loading}
-            className={`${
-              username ? "cursor-pointer hover:opacity-80" : ""
-            } text-white font-bold py-2 px-4 rounded bg-transparent border`}
+            className="cursor-pointer hover:opacity-80 text-white font-bold py-2 px-4 rounded bg-transparent border"
             onClick={loginCredential}
           >
             Sign transaction
@@ -416,6 +410,53 @@ export default function Home() {
               ></path>
             </svg>
           </div>
+        )}
+        {proof && (
+          <button
+            disabled={verifyLoading}
+            className={`${
+              username ? "cursor-pointer hover:opacity-80" : ""
+            } text-white font-bold py-2 px-4 rounded bg-transparent border`}
+            onClick={async () => {
+              setVerifyLoading(true);
+              try {
+                const { data } = await axios.post(`${API_URL}/verify_evm`, {
+                  verifying_key_path: "verifying_key.vk",
+                  proof,
+                });
+                if (data === "verified") {
+                  setVerified(true);
+                } else {
+                  setVerified(false);
+                }
+              } catch {
+                setVerified(false);
+              }
+              setVerifyLoading(false);
+            }}
+          >
+            {(() => {
+              if (verifyLoading) {
+                return "Verifying...";
+              }
+              if (verified === false) {
+                return "Invalid ❌";
+              }
+              if (verified === true) {
+                return "Verified ✅";
+              }
+              return "Verify";
+            })()}
+          </button>
+        )}
+        {verified && (
+          <button
+            //  disabled={loading}
+            className="cursor-pointer hover:opacity-80 text-white font-bold py-2 px-4 rounded bg-transparent border"
+            onClick={sendToBundler}
+          >
+            Sign transaction
+          </button>
         )}
 
         {response?.registrationInfo && (
