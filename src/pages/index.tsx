@@ -424,7 +424,7 @@ export default function Home() {
               setVerifyLoading(true);
               try {
                 const { data } = await axios.post(`${API_URL}/verify_evm`, {
-                  verifying_key_path: "verifying_key.vk",
+                  verifying_key_path: "./keys/verifying_key.vk",
                   proof,
                 });
                 if (data === "verified") {
