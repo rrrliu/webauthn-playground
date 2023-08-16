@@ -33,7 +33,8 @@
     "semaphore-webauthn": "^0.0.0",
     "styled-components": "^5.3.9",
     "typescript": "4.9.5",
-    "userop": "^0.3.1"
+    "userop": "^0.3.1",
+    "@account-abstraction/contracts": "^0.6.0"
   },
   "resolutions": {
     "styled-components": "^5"
