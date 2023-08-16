@@ -13,7 +13,6 @@ import {
 } from "@simplewebauthn/server";
 import * as cborx from "cbor-x";
 import { useState } from "react";
-import styled from "styled-components";
 import { AsnParser } from "@peculiar/asn1-schema";
 import { ECDSASigValue } from "@peculiar/asn1-ecc";
 import axios from "axios";
@@ -264,7 +263,7 @@ export default function Home() {
       pubkey_x: Array.from(new Uint8Array(x)).reverse(),
       pubkey_y: Array.from(new Uint8Array(y)).reverse(),
       msghash: Array.from(new Uint8Array(hashedMessage)).reverse(),
-      proving_key_path: "./proving_key.pk",
+      proving_key_path: "./keys/proving_key.pk",
     });
     console.log({ data });
     setLoading(false);
@@ -282,11 +281,15 @@ export default function Home() {
     console.log(4);
     const sender = "0xe0bff5a98bb11e3d7951bc10cf7c80e9a3d8b435";
     console.log(5);
-    const builder = new UserOperationBuilder().useDefaults({ sender });
+    const builder = new UserOperationBuilder().useDefaults({
+      sender,
+      signature: proof,
+    });
     console.log(6);
     const response = await client.sendUserOperation(builder);
     console.log(7);
     const userOperationEvent = await response.wait();
+    // Userop with signature field = proof
   }
 
   async function createNewCredential() {
