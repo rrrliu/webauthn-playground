@@ -381,20 +381,20 @@ export default function Home() {
       },
     ])
 
-    const paymasterAndData = sponsorUserOperationResult.paymasterAndData
+    // const paymasterAndData = sponsorUserOperationResult.paymasterAndData
 
-    userOperation.paymasterAndData = paymasterAndData
+    // userOperation.paymasterAndData = paymasterAndData
 
-    console.log("Pimlico paymasterAndData:", paymasterAndData)
+    // console.log("Pimlico paymasterAndData:", paymasterAndData)
 
     // SIGN THE USER OPERATION
-    const signature = await owner.signMessage(
-      utils.arrayify(await entryPoint.getUserOpHash(userOperation)),
-    )
+    // const signature = await owner.signMessage(
+    //   utils.arrayify(await entryPoint.getUserOpHash(userOperation)),
+    // )
 
-    userOperation.signature = signature
+    // userOperation.signature = signature
 
-    console.log("UserOperation signature:", signature)
+    // console.log("UserOperation signature:", signature)
 
     // SUBMIT THE USER OPERATION TO BE BUNDLED
     const userOperationHash = await pimlicoProvider.send("eth_sendUserOperation", [
