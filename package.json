@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@account-abstraction/contracts": "^0.6.0",
     "@github/webauthn-json": "^2.1.1",
     "@hexagon/base64": "^1.1.26",
     "@peculiar/asn1-ecc": "^2.3.6",
@@ -33,8 +34,7 @@
     "semaphore-webauthn": "^0.0.0",
     "styled-components": "^5.3.9",
     "typescript": "4.9.5",
-    "userop": "^0.3.1",
-    "@account-abstraction/contracts": "^0.6.0"
+    "userop": "^0.3.1"
   },
   "resolutions": {
     "styled-components": "^5"
